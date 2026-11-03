@@ -4,12 +4,14 @@
 // Source of truth: src/info.js (all text, facts, quotations and discussion questions), src/sources.js (source list),
 //   src/app.js (page code), src/index.html (page shell), src/styles.css, and images/.
 // src/folklore.js holds the Folklore and legends section (folklore data, extra sources, and folkTeach teacher prompts).
+// src/coast-sources.js, coast-districts.js, coast-map.js and coast.js hold the "Up the coast" page (district cards, map outline,
+//   extra timeline, places, people, sources, and teacher questions). Teacher questions are added to "discuss", which the student build removes.
 // Student build removes: the "discuss", "teacherNotes" and "folkTeach" data, app.js blocks between /*T*/ markers,
 //   and index.html blocks between <!--T--> markers. The student files hold no discussion answers.
 const fs = require('fs'), path = require('path');
 const root = __dirname, src = path.join(root, 'src');
 global.window = {};
-for (const f of ['info', 'sources', 'folklore']) { const fp = path.join(src, f + '.js'); if (fs.existsSync(fp)) require(fp); }
+for (const f of ['info', 'sources', 'folklore', 'coast-sources', 'coast-districts', 'coast-map', 'coast']) { const fp = path.join(src, f + '.js'); if (fs.existsSync(fp)) require(fp); }
 const INFO = JSON.parse(JSON.stringify(window.INFO));
 
 function studentData(D) { delete D.discuss; delete D.teacherNotes; delete D.folkTeach; return D; }
