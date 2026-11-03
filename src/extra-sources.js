@@ -1,0 +1,4 @@
+module.exports = {
+  photoBundaberg: { short: 'Photograph, Bundaberg 1895', t: 'Photograph: South Sea Islanders on the deck of a ship arriving at Bundaberg, 1895 (R. J. Cottell, from Pugh’s Almanac 1895, p. 149). State Library of Queensland negative 16954, via Wikimedia Commons (public domain).', u: 'https://commons.wikimedia.org/wiki/File:StateLibQld_1_50564_South_Sea_Islanders_on_the_deck_of_a_ship_arriving_at_Bundaberg,_1895.jpg' },
+  photoHambledon: { short: 'Photograph, Hambledon about 1891', t: 'Photograph: South Sea Islander workers hoeing weeds on a sugar cane plantation at Hambledon, Queensland, about 1891. State Library of Queensland (photographer unidentified; no known copyright restrictions), via Wikimedia Commons.', u: 'https://commons.wikimedia.org/wiki/File:Australian_South_Sea_Islander_workers_hoeing_weeds_on_a_sugar_cane_plantation_in_Hambledon,_Queensland,_ca._1891_(9205456322).jpg' }
+};

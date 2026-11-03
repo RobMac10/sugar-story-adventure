@@ -1,34 +1,21 @@
-# The Sugar Story
+# Sugar and South Sea Islanders in Queensland
 
-A choose-your-path historical adventure about the Queensland sugar industry, South Sea Islander labour, the Pacific Island Labourers Act 1901 and the deportations of 1906 to 1908. It is set mainly in the Mackay district, with short notes on Bundaberg, the Burdekin and Cairns. By Robin McKean, for teen readers.
+By Robin McKean. A non-fiction information bank about the Queensland sugar industry, South Sea Islander labour, the Pacific Island Labourers Act 1901 and the deportations of 1906 to 1908, with a focus on the Mackay district.
 
 - Student version: https://robmac10.github.io/sugar-story-adventure/
-- Teacher version (answers and notes behind "Show" buttons): https://robmac10.github.io/sugar-story-adventure/teacher/
+- Teacher version: https://robmac10.github.io/sugar-story-adventure/teacher/ (not linked from the student version, and set to noindex). It adds discussion questions with suggested answers behind "Show" buttons.
 
 ## What is in it
-
-- 19 scenes and 5 endings, with real history panels that give sources.
-- A "Behind the Story" page that lists everything that is invented.
-- A "Discuss and write" page and a Sources page.
-- Two old photographs from the State Library of Queensland (public domain or no known copyright restrictions), credited. No AI images.
+Overview, Timeline (dated events, each with a short explanation and its source), Places, People and groups (real ones only), Real lives (short documented accounts, with a person's own words only where a source records them), Did you know, and Sources (including where sources disagree). There are no invented characters, no story and no newspaper headlines.
 
 ## Content warning and review
+This resource may contain names and images of deceased Aboriginal and Torres Strait Islander people (and, for the sugar resource, South Sea Islander people). It has **not yet been reviewed** by community members. Please seek review, for example from QUASSIC, local Australian South Sea Islander groups and the Traditional Owners of the Mackay district, including the Yuibera people, before classroom use.
 
-This resource may contain names and images of deceased Aboriginal, Torres Strait Islander and South Sea Islander people. It has **not yet been reviewed** by Australian South Sea Islander community groups (for example QUASSIC, the Queensland United Australian South Sea Islander Council) or by Aboriginal Traditional Owners. Please seek that review before using it widely.
+## Editing
+Edit files in `src/` (`info.js` holds all text, facts and questions; `extra-sources.js` holds source notes; `app.js`, `index.html` and `styles.css` hold the page), then run `node build.js`. It writes the student version at the site root and the teacher version in `teacher/`. The student build removes all discussion questions, answers and teacher-only code. Do not edit the built files in the root or in `teacher/` directly.
 
-## Building
+## Archive
+The earlier choose-your-path story version is kept, not deleted. It is the git tag `story-version` and the folder `archive/story-version/`.
 
-Edit the files in `src/` and run:
-
-    node build.js
-
-This writes the student version to the repository root and the teacher version to `teacher/`. The student files contain no answers or teacher notes. Do not edit the built files in the root or in `teacher/`.
-
-- `src/data1.js` to `src/data4.js`: sources, scenes, endings, Behind the Story, questions and teacher notes.
-- `src/app.js`: the app. Blocks between `/*T*/` and `/*/T*/` are teacher-only.
-- `src/index.html`, `src/styles.css`: page and style. Blocks between `<!--T-->` and `<!--/T-->` are teacher-only.
-- `images/`: photographs, with credits on the Behind the Story and Sources pages.
-
-## Rules for this project
-
-No invented historical facts. Invented people and events are labelled in Behind the Story. Public domain images only. Plain prose for teen readers, Australian English.
+## Rules followed
+No invented facts (where sources disagree, the resource says so), public domain credited images only, no AI images, plain prose, Australian English.

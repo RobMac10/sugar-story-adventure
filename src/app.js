@@ -1,12 +1,7 @@
 (function () {
   'use strict';
-  var D = window.SS, N = D.nodes;
+  var D = window.INFO;
   var main = document.getElementById('main'), nav = document.getElementById('nav'), foot = document.getElementById('foot');
-  var KEY = 'ss-state-v1';
-  var state = load();
-  function load() { try { return JSON.parse(sessionStorage.getItem(KEY)) || fresh(); } catch (e) { return fresh(); } }
-  function fresh() { return { v: {}, path: [] }; }
-  function save() { try { sessionStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
   function el(tag, attrs, kids) {
     var e = document.createElement(tag);
@@ -19,38 +14,41 @@
     return e;
   }
   function p(t, cls) { return el('p', cls ? { 'class': cls, text: t } : { text: t }); }
-  function matches(c) {
-    if (!c) return true;
-    for (var k in c) if (state.v[k] !== c[k]) return false;
-    return true;
-  }
-  function paras(list) {
-    var out = [];
-    list.forEach(function (x) {
-      if (typeof x === 'string') out.push(p(x));
-      else if (matches(x.if)) out.push(p(x.t));
-    });
-    return out;
-  }
+  function ul(list, cls) { var u = el('ul', cls ? { 'class': cls } : null); list.forEach(function (t) { u.appendChild(el('li', { text: t })); }); return u; }
+  function paras(list) { return (list || []).map(function (t) { return p(t); }); }
+
   function srcLinks(keys) {
+    if (!keys || !keys.length) return null;
     var wrap = el('span', { 'class': 'srcs' }, [el('span', { text: 'Source: ' })]);
     keys.forEach(function (k, i) {
       var s = D.sources[k];
+      if (!s) return;
       if (i) wrap.appendChild(document.createTextNode('; '));
       wrap.appendChild(el('a', { href: s.u, target: '_blank', rel: 'noopener', text: s.short }));
     });
     return wrap;
   }
-  function realBox(list, title) {
-    var d = el('details', { 'class': 'panel real' });
-    d.appendChild(el('summary', { text: title || 'Real history for this scene' }));
-    var ul = el('ul');
-    list.forEach(function (r) {
-      ul.appendChild(el('li', null, [el('span', { 'class': 'badge b-real', text: 'Real' }), document.createTextNode(r.t + ' '), srcLinks(r.src)]));
-    });
-    d.appendChild(ul);
+  function srcP(keys) { var s = srcLinks(keys); return s ? el('p', { 'class': 'srcline' }, [s]) : null; }
+
+  function figure(key) {
+    var im = D.images && D.images[key];
+    if (!im) return null;
+    var fig = el('figure', im.tall ? { 'class': 'tall' } : null);
+    fig.appendChild(el('img', { src: im.file, alt: im.alt, loading: 'lazy', width: im.w || '', height: im.h || '' }));
+    fig.appendChild(el('figcaption', null, [
+      document.createTextNode(im.caption + ' Credit: ' + im.credit + '. '),
+      el('a', { href: im.url, target: '_blank', rel: 'noopener', text: 'Image page' })
+    ]));
+    if (!im.people) return fig;
+    var d = el('details', { 'class': 'panel viewpic' });
+    d.appendChild(el('summary', { text: 'View photograph: ' + (im.summary || 'it shows people who have died') }));
+    d.appendChild(p('This photograph shows people who have died. You can choose whether to look at it. It is a public domain image and there are no AI images in this resource.'));
+    d.appendChild(fig);
     return d;
   }
+
+  function badge(text, cls) { return el('span', { 'class': 'badge ' + (cls || ''), text: text }); }
+
   /*T*/
   function toggle(label, content) {
     var id = 't' + Math.random().toString(36).slice(2, 8);
@@ -65,28 +63,9 @@
     });
     return el('div', { 'class': 'tgroup' }, [b, box]);
   }
-  function teacherBlock(t) {
-    if (!t) return null;
-    var inner = el('div');
-    inner.appendChild(el('p', null, [el('b', { text: 'About this scene. ' }), document.createTextNode(t.about)]));
-    if (t.ask && t.ask.length) {
-      inner.appendChild(el('h3', { text: 'Questions to ask' }));
-      var ul = el('ul');
-      t.ask.forEach(function (q) { ul.appendChild(el('li', { text: q })); });
-      inner.appendChild(ul);
-      inner.appendChild(el('h3', { text: 'Suggested answers' }));
-      var ol = el('ul');
-      t.answers.forEach(function (a) { ol.appendChild(el('li', { text: a })); });
-      inner.appendChild(ol);
-    }
-    var wrap = el('div', { 'class': 'panel teacher' });
-    wrap.appendChild(el('h3', { text: 'Teacher notes' }));
-    wrap.appendChild(toggle('notes and answers for this scene', inner));
-    return wrap;
-  }
   /*/T*/
 
-  function setPage(title, nodes) {
+  function setPage(title, nodes, hideH1) {
     main.innerHTML = '';
     var h = el('h1', { tabindex: '-1', text: title });
     main.appendChild(h);
@@ -96,161 +75,214 @@
     h.focus();
   }
 
+  var SECTIONS = [
+    ['#/', 'Overview'], ['#/timeline', 'Timeline'], ['#/places', 'Places'], ['#/people', 'People and groups'],
+    ['#/lives', 'Real lives'], ['#/know', 'Did you know'], ['#/sources', 'Sources']
+  ];
+  /*T*/ SECTIONS.push(['#/discuss', 'Discussion questions']); /*/T*/
+
   function renderNav(route) {
     nav.innerHTML = '';
-    var items = [['#/', 'Start'], ['#/behind', 'Behind the Story'], ['#/discuss', 'Discuss and write'], ['#/sources', 'Sources']];
-    /*T*/ items.push(['#/teacher', 'Teacher notes']); /*/T*/
-    items.forEach(function (it) {
+    SECTIONS.forEach(function (it) {
       var a = el('a', { href: it[0], text: it[1] });
-      var cur = (it[0] === '#/' && (route === '' || route.indexOf('n/') === 0)) || it[0] === '#/' + route;
-      if (cur) a.setAttribute('aria-current', 'page');
+      if (it[0] === '#/' + route || (it[0] === '#/' && route === '')) a.setAttribute('aria-current', 'page');
       nav.appendChild(a);
     });
   }
 
-  function start() {
-    state = fresh(); save();
-    location.hash = '#/n/how';
+  function warningPanel() {
+    var w = el('div', { 'class': 'care', role: 'note' });
+    w.appendChild(el('h2', { text: 'Content warning' }));
+    D.warning.forEach(function (t, i) { w.appendChild(el('p', i === 0 ? { 'class': 'strong', text: t } : { text: t })); });
+    w.appendChild(el('p', { 'class': 'review', text: D.review }));
+    return w;
   }
 
-  function viewOpening() {
-    var w = el('div', { 'class': 'care', role: 'note' });
-    w.appendChild(el('h2', { text: 'Cultural content warning' }));
-    D.opening.warning.forEach(function (t, i) { w.appendChild(el('p', i === 0 ? { 'class': 'strong', text: t } : { text: t })); });
-    var r = el('div', { 'class': 'panel check' }, [p(D.opening.review)]);
-    var btn = el('button', { type: 'button', 'class': 'btn dark big', text: 'I have read the warning. Begin the story.' });
-    btn.addEventListener('click', start);
-    var kids = [el('p', { 'class': 'lead', text: D.subtitle }), w, r];
-    D.opening.intro.forEach(function (t) { kids.push(p(t)); });
-    kids.push(el('div', { 'class': 'actions' }, [btn, el('a', { 'class': 'btn', href: '#/behind', text: 'Read Behind the Story first' })]));
-    /*T*/ kids.push(el('p', { 'class': 'note', text: 'Teacher version. Notes and answers are behind “Show” buttons on each scene and on the Discuss and write page.' })); /*/T*/
+  function viewOverview() {
+    var O = D.overview, kids = [];
+    kids.push(p(D.subtitle, 'lead'));
+    kids.push(warningPanel());
+    var hero = figure(O.image);
+    if (hero) kids.push(hero);
+    kids.push(p(O.lead, 'bigpara'));
+    if (O.glance && O.glance.length) {
+      kids.push(el('h2', { text: 'At a glance' }));
+      var g = el('div', { 'class': 'glance' });
+      O.glance.forEach(function (x) {
+        g.appendChild(el('div', { 'class': 'stat' }, [el('b', { text: x.n }), el('span', { text: x.label }), x.src ? srcLinks(x.src) : null]));
+      });
+      kids.push(g);
+    }
+    O.sections.forEach(function (s) {
+      kids.push(el('h2', { text: s.h }));
+      s.p.forEach(function (t) { kids.push(p(t)); });
+      if (s.src) kids.push(srcP(s.src));
+    });
+    if (O.words && O.words.length) {
+      kids.push(el('h2', { text: 'Words used in this resource' }));
+      var dl = el('dl', { 'class': 'words' });
+      O.words.forEach(function (w) { dl.appendChild(el('dt', { text: w[0] })); dl.appendChild(el('dd', { text: w[1] })); });
+      kids.push(dl);
+    }
+    if (O.left && O.left.length) {
+      kids.push(el('div', { 'class': 'panel' }, [el('h2', { text: 'What this resource leaves out on purpose' }), ul(O.left)]));
+    }
+    kids.push(el('h2', { text: 'Explore' }));
+    var tiles = el('div', { 'class': 'tiles' });
+    var blurbs = {
+      '#/timeline': 'Dated events, each with a short explanation and its source.',
+      '#/places': 'The main places and what happened there.',
+      '#/people': 'Real people, groups and organisations named in the sources.',
+      '#/lives': 'Short accounts of real people from the records.',
+      '#/know': 'Facts from the sources that are worth knowing.',
+      '#/sources': 'Every source used, and where sources disagree.'
+    };
+    SECTIONS.slice(1, 7).forEach(function (s) {
+      tiles.appendChild(el('a', { 'class': 'tile', href: s[0] }, [el('b', { text: s[1] }), el('span', { text: blurbs[s[0]] })]));
+    });
+    kids.push(tiles);
+    /*T*/ kids.push(el('p', { 'class': 'note', text: 'Teacher version. Discussion questions with suggested answers are on the “Discussion questions” page, behind “Show” buttons.' })); /*/T*/
     setPage(D.title, kids);
   }
 
-  function viewNode(id) {
-    var n = N[id];
-    if (!n) { location.hash = '#/'; return; }
-    if (id === 'how' && (!state.path.length || state.path[state.path.length - 1].id !== 'how')) { state = fresh(); }
-    if (n.set) for (var k in n.set) state.v[k] = n.set[k];
-    var at = -1;
-    state.path.forEach(function (s, i) { if (s.id === id) at = i; });
-    if (at >= 0) { state.path = state.path.slice(0, at + 1); delete state.path[at].choice; }
-    else state.path.push({ id: id, title: n.title });
-    save();
-    var kids = [];
-    if (n.end) kids.push(el('p', { 'class': 'kind', text: 'Ending: ' + n.kind }));
-    paras(n.text).forEach(function (x) { kids.push(x); });
-    if (n.end) {
-      kids.push(el('div', { 'class': 'panel summary' }, [el('h2', { text: 'What this ending shows' }), p(n.summary)]));
-    }
-    if (n.real) kids.push(realBox(n.real));
-    if (id === 'how') {
-      // nothing extra
-    }
-    if (n.choices) {
-      var ul = el('ul', { 'class': 'choices', 'aria-label': 'Your choices' });
-      n.choices.filter(function (c) { return matches(c.if); }).forEach(function (c) {
-        var b = el('button', { type: 'button', 'class': 'sc', text: c.label });
-        b.addEventListener('click', function () {
-          var cur = state.path[state.path.length - 1];
-          if (cur) cur.choice = c.label;
-          if (c.set) for (var k in c.set) state.v[k] = c.set[k];
-          save();
-          location.hash = '#/n/' + c.to;
-        });
-        ul.appendChild(el('li', null, [b]));
-      });
-      kids.push(el('h2', { 'class': 'sr', text: 'What do you do?' }));
-      kids.push(ul);
-    }
-    /*T*/ var tb = teacherBlock(n.teacher); if (tb) kids.push(tb); /*/T*/
-    if (n.end) {
-      var pl = el('ol', { 'class': 'trail' });
-      state.path.forEach(function (s) {
-        var li = el('li', null, [el('b', { text: s.title }), s.choice ? document.createTextNode(': ' + s.choice) : null]);
-        pl.appendChild(li);
-      });
-      kids.push(el('div', { 'class': 'panel' }, [el('h2', { text: 'Your path' }), pl]));
-      var again = el('button', { type: 'button', 'class': 'btn dark', text: 'Try another path' });
-      again.addEventListener('click', start);
-      kids.push(el('div', { 'class': 'actions' }, [again, el('a', { 'class': 'btn', href: '#/behind', text: 'Behind the Story' }), el('a', { 'class': 'btn', href: '#/discuss', text: 'Discuss and write' })]));
-    } else {
-      kids.push(el('p', { 'class': 'small', text: 'Scene ' + state.path.length + '. You can stop at any time.' }));
-      var rs = el('button', { type: 'button', 'class': 'btn small', text: 'Start again' });
-      rs.addEventListener('click', start);
-      kids.push(rs);
-    }
-    setPage(n.title, kids);
-  }
-
-  function ul(list) { var u = el('ul'); list.forEach(function (t) { u.appendChild(el('li', { text: t })); }); return u; }
-
-  function viewBehind() {
-    var B = D.behind, kids = [];
-    kids.push(p(B.intro));
-    kids.push(el('div', { 'class': 'panel made' }, [el('h2', { text: 'What is invented' }), ul(B.invented)]));
-    kids.push(el('div', { 'class': 'panel' }, [el('h2', { text: 'What the story leaves out on purpose' }), ul(B.left)]));
-    kids.push(el('div', { 'class': 'panel' }, [el('h2', { text: 'Fairness to the people in the story' }), ul(B.caution)]));
-    kids.push(el('div', { 'class': 'panel real' }, [el('h2', { text: 'Real history' }), p('Every real fact in the story is given in a “Real history” panel with its source. See the Sources page for the full list.')]));
-    kids.push(el('div', { 'class': 'care' }, [el('h2', { text: 'Content warning and community review' }), p(D.opening.warning[0]), p(D.opening.review)]));
-    B.images.forEach(function (im) {
-      var img = el('details', { 'class': 'panel' });
-      img.appendChild(el('summary', { text: im.summary }));
-      img.appendChild(p(B.imageNote));
-      var fig = el('figure');
-      fig.appendChild(el('img', { src: im.file, alt: im.alt, loading: 'lazy' }));
-      fig.appendChild(el('figcaption', null, [document.createTextNode(im.cap + ' '), srcLinks([im.src])]));
-      img.appendChild(fig);
-      kids.push(img);
-    });
-    setPage('Behind the Story', kids);
-  }
-
-  function qlist(list, label) {
-    var ol = el('ol', { 'class': 'qs' });
-    list.forEach(function (it) {
-      var li = el('li', null, [el('p', { text: it.q })]);
-      /*T*/ if (it.a) li.appendChild(toggle('suggested answer', p(it.a))); /*/T*/
+  function viewTimeline() {
+    var kids = [p('These are the key dated events in this history. Each has a short explanation and its source. Where sources give different dates or details, the entry says so.', 'lead')];
+    var ol = el('ol', { 'class': 'tl' });
+    D.timeline.forEach(function (e) {
+      var li = el('li', e.flag ? { 'class': 'flagged' } : null);
+      li.appendChild(el('span', { 'class': 'tl-date', text: e.date }));
+      var body = el('div', { 'class': 'tl-body' });
+      body.appendChild(el('h3', { text: e.title }));
+      body.appendChild(p(e.text));
+      if (e.flag) body.appendChild(el('p', { 'class': 'flag' }, [badge('Sources differ', 'b-flag'), document.createTextNode(e.flag)]));
+      var s = srcLinks(e.src); if (s) body.appendChild(el('p', { 'class': 'srcline' }, [s]));
+      li.appendChild(body);
       ol.appendChild(li);
     });
-    return ol;
+    kids.push(ol);
+    setPage('Timeline', kids);
   }
-  function viewDiscuss() {
-    var kids = [p('Play at least three different paths before you answer these.'),
-      el('h2', { text: 'Discuss' }), qlist(D.discuss),
-      el('h2', { text: 'Write' }), qlist(D.write),
-      p('Write your answers in full sentences. Use the real history panels as evidence, and say which parts of the story are invented.')];
-    setPage('Discuss and write', kids);
+
+  function viewPlaces() {
+    var kids = [p('Places named in the sources, with what the sources say about them. Every place is on the Country of Aboriginal people.', 'lead')];
+    D.places.forEach(function (pl) {
+      var a = el('article', { 'class': 'card' });
+      a.appendChild(el('h2', { text: pl.name }));
+      if (pl.where) a.appendChild(el('p', { 'class': 'where', text: pl.where }));
+      if (pl.image) a.appendChild(figure(pl.image));
+      paras(pl.text).forEach(function (x) { a.appendChild(x); });
+      var s = srcP(pl.src); if (s) a.appendChild(s);
+      kids.push(a);
+    });
+    setPage('Places', kids);
+  }
+
+  function viewPeople() {
+    var kids = [p('Only real people, groups and organisations that appear in the sources are listed here. Nobody has been invented. Where a person’s own name is not known, the entry says so.', 'lead')];
+    var order = [['person', 'People'], ['group', 'Groups and communities'], ['org', 'Organisations, laws and official bodies']];
+    order.forEach(function (o) {
+      var items = D.people.filter(function (x) { return x.kind === o[0]; });
+      if (!items.length) return;
+      kids.push(el('h2', { text: o[1] }));
+      var wrap = el('div', { 'class': 'cards' });
+      items.forEach(function (x) {
+        var a = el('article', { 'class': 'card small' });
+        a.appendChild(el('h3', { text: x.name }));
+        if (x.dates) a.appendChild(el('p', { 'class': 'where', text: x.dates }));
+        a.appendChild(p(x.text));
+        if (x.image) a.appendChild(figure(x.image));
+        var s = srcP(x.src); if (s) a.appendChild(s);
+        wrap.appendChild(a);
+      });
+      kids.push(wrap);
+    });
+    setPage('People and groups', kids);
+  }
+
+  function viewLives() {
+    var kids = [p('Short accounts of real people, taken from records. A person’s own words are quoted only where a source records them. Spelling in quotations is as the source gives it.', 'lead')];
+    D.lives.forEach(function (l) {
+      var a = el('article', { 'class': 'card life' });
+      a.appendChild(el('h2', { text: l.name }));
+      if (l.dates) a.appendChild(el('p', { 'class': 'where', text: l.dates }));
+      paras(l.text).forEach(function (x) { a.appendChild(x); });
+      if (l.quote) {
+        var bq = el('blockquote');
+        l.quote.lines.forEach(function (t) { bq.appendChild(p('“' + t + '”')); });
+        bq.appendChild(el('footer', { text: l.quote.by }));
+        a.appendChild(bq);
+        if (l.quote.note) a.appendChild(p(l.quote.note, 'small'));
+      }
+      if (l.after) paras(l.after).forEach(function (x) { a.appendChild(x); });
+      if (l.flag) a.appendChild(el('p', { 'class': 'flag' }, [badge('Check', 'b-flag'), document.createTextNode(l.flag)]));
+      if (l.image) a.appendChild(figure(l.image));
+      var s = srcP(l.src); if (s) a.appendChild(s);
+      kids.push(a);
+    });
+    setPage('Real lives', kids);
+  }
+
+  function viewKnow() {
+    var kids = [p('Facts from the sources that are worth knowing.', 'lead')];
+    var wrap = el('ol', { 'class': 'know' });
+    D.know.forEach(function (k) {
+      var li = el('li', null, [p(k.t)]);
+      var s = srcP(k.src); if (s) li.appendChild(s);
+      wrap.appendChild(li);
+    });
+    kids.push(wrap);
+    setPage('Did you know', kids);
   }
 
   function viewSources() {
-    var ul2 = el('ul', { 'class': 'sourcelist' });
+    var kids = [p(D.sourcesIntro, 'lead')];
+    kids.push(el('div', { 'class': 'panel check' }, [el('h2', { text: 'Where sources disagree, or the record has gaps' }), ul(D.disagree)]));
+    kids.push(el('div', { 'class': 'care' }, [el('h2', { text: 'Care and cultural review' })].concat(paras(D.care))));
+    kids.push(el('h2', { text: 'Images' }));
+    kids.push(p(D.imageNote));
+    kids.push(el('h2', { text: 'Source list' }));
+    var list = el('ul', { 'class': 'sourcelist' });
     Object.keys(D.sources).forEach(function (k) {
       var s = D.sources[k];
-      ul2.appendChild(el('li', null, [document.createTextNode(s.t + ' '), el('a', { href: s.u, target: '_blank', rel: 'noopener', text: s.u })]));
+      var li = el('li', null, [document.createTextNode(s.t + ' '), el('a', { href: s.u, target: '_blank', rel: 'noopener', text: s.u })]);
+      if (s.note) li.appendChild(el('span', { 'class': 'snote', text: ' ' + s.note }));
+      list.appendChild(li);
     });
-    setPage('Sources', [p('These are the sources for the real history in the story. Trove is the National Library of Australia’s newspaper archive. Where a source is a book or journal article, the link goes to a copy that can be read online.'), ul2,
-      el('div', { 'class': 'note' }, [p('Where to read more: Queensland State Archives holds records about Australian South Sea Islanders (recruitment, agreements, health, deportation and those who stayed). The National Archives of Australia holds the 1902 and 1906 petitions. Some records use words that are offensive today. Talk to a teacher first.')])]);
+    kids.push(list);
+    setPage('Sources', kids);
   }
 
   /*T*/
-  function viewTeacher() {
-    setPage('Teacher notes', [ul(D.teacherNotes), p('Each scene has a “Teacher notes” block. Open it with the “Show” button.')]);
+  function viewDiscuss() {
+    var kids = [p('Suggested questions for class discussion or writing. Each suggested answer is behind a “Show” button.', 'lead')];
+    kids.push(el('div', { 'class': 'panel teacher' }, [el('h2', { text: 'Notes for teachers' }), ul(D.teacherNotes)]));
+    var ol = el('ol', { 'class': 'qs' });
+    D.discuss.forEach(function (it) {
+      var li = el('li', null, [el('p', { text: it.q })]);
+      var ans = el('div');
+      it.a.forEach(function (t) { ans.appendChild(p(t)); });
+      li.appendChild(toggle('suggested answer', ans));
+      ol.appendChild(li);
+    });
+    kids.push(ol);
+    setPage('Discussion questions', kids);
   }
   /*/T*/
 
   function route() {
     var r = (location.hash || '#/').replace(/^#\/?/, '');
     renderNav(r);
-    if (r === '' ) viewOpening();
-    else if (r.indexOf('n/') === 0) viewNode(r.slice(2));
-    else if (r === 'behind') viewBehind();
-    else if (r === 'discuss') viewDiscuss();
+    if (r === '') viewOverview();
+    else if (r === 'timeline') viewTimeline();
+    else if (r === 'places') viewPlaces();
+    else if (r === 'people') viewPeople();
+    else if (r === 'lives') viewLives();
+    else if (r === 'know') viewKnow();
     else if (r === 'sources') viewSources();
-    /*T*/ else if (r === 'teacher') viewTeacher(); /*/T*/
-    else viewOpening();
+    /*T*/ else if (r === 'discuss') viewDiscuss(); /*/T*/
+    else viewOverview();
   }
-  foot.appendChild(p('This resource may contain names and images of deceased Aboriginal, Torres Strait Islander and South Sea Islander people. Harry and the other characters in the story are invented.'));
+  foot.appendChild(p(D.footnote));
   foot.appendChild(p(D.footer));
   window.addEventListener('hashchange', route);
   route();
