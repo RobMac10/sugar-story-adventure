@@ -39,6 +39,7 @@
       document.createTextNode(im.caption + ' Credit: ' + im.credit + '. '),
       el('a', { href: im.url, target: '_blank', rel: 'noopener', text: 'Image page' })
     ]));
+    if (im.note) fig.appendChild(el('p', { 'class': 'small', text: im.note }));
     if (!im.people) return fig;
     var d = el('details', { 'class': 'panel viewpic' });
     d.appendChild(el('summary', { text: 'View photograph: ' + (im.summary || 'it shows people who have died') }));
