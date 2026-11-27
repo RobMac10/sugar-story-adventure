@@ -24,7 +24,7 @@ function htmlMode(s, mode) {
   s = s.replace(/<!--\/?T-->/g, '');
   const rep = { TITLE: INFO.title, SUB: INFO.subtitle, DESC: INFO.description, LEFT: INFO.dateLeft, RIGHT: INFO.dateRight, THEME: INFO.theme, THEMEHEX: INFO.theme.replace('#', '') };
   for (const k in rep) s = s.split('{{' + k + '}}').join(rep[k].replace(/&/g, '&amp;').replace(/"/g, '&quot;'));
-  s = s.replace('<meta name="theme-color"', '<meta name="robots" content="noindex">\n<meta name="theme-color"');
+  s = s.replace('<meta name="theme-color"', '<meta name="robots" content="noindex, nofollow">\n<meta name="theme-color"');
   return s;
 }
 function out(dir, mode) {
