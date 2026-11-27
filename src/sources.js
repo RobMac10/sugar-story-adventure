@@ -94,17 +94,17 @@ window.INFO.sources = {
  },
  "quassic1": {
   "t": "QUASSIC (Queensland United Australian South Sea Islander Council). Historical Information Sheet No 1: Defining Slavery, Indenture, and Blackbirding.",
-  "u": "https://www.quassic.org.au/no-1-defining-slavery-indenture-and-blackbirding",
+  "u": "https://web.archive.org/web/20251206075337/https://www.quassic.org.au/no-1-defining-slavery-indenture-and-blackbirding",
   "short": "QUASSIC sheet 1"
  },
  "quassic6": {
   "t": "QUASSIC. Historical Information Sheet No 6: Mortality and Pacific Islander Migrants in Colonial Queensland.",
-  "u": "https://www.quassic.org.au/no-6-mortality-and-pacific-islander-migrants-in-colonial-queensland",
+  "u": "https://web.archive.org/web/20260202214737/https://www.quassic.org.au/no-6-mortality-and-pacific-islander-migrants-in-colonial-queensland",
   "short": "QUASSIC sheet 6"
  },
  "quassic7": {
   "t": "QUASSIC. Historical Information Sheet No 7: Incidents of Abuse of Pacific Islanders during the Recruiting Process to Queensland.",
-  "u": "https://www.quassic.org.au/no-7-incidents-of-abuse-of-pacific-islanders-during-the-recruiting-process-to-queensland",
+  "u": "https://web.archive.org/web/20260103084308/https://www.quassic.org.au/no-7-incidents-of-abuse-of-pacific-islanders-during-the-recruiting-process-to-queensland",
   "short": "QUASSIC sheet 7"
  },
  "sarina": {

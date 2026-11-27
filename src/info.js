@@ -7,10 +7,10 @@ title: 'Sugar and South Sea Islanders in Queensland',
 subtitle: 'An information bank about the sugar industry, the labour trade and the deportations of 1906 to 1908, with a focus on the Mackay district',
 description: 'A non-fiction information bank about the Queensland sugar industry, South Sea Islander labour, the Pacific Island Labourers Act 1901 and the deportations of 1906 to 1908. Overview, timeline, places, people, real lives and sources.',
 dateLeft: 'Queensland · 1863 to 1908',
-dateRight: 'By Robin McKean',
+dateRight: 'Information bank',
 theme: '#1f2b1a',
 footnote: 'This resource may contain names and images of deceased Aboriginal, Torres Strait Islander and South Sea Islander people. Everything in it comes from the sources listed on the Sources page.',
-footer: 'Sugar and South Sea Islanders in Queensland. A non-fiction information bank by Robin McKean. This resource has no tracking and no cookies. An earlier choose-your-path story version is kept in the archive folder of the project on GitHub.',
+footer: 'Sugar and South Sea Islanders in Queensland. A non-fiction information bank. This resource has no tracking and no cookies. An earlier choose-your-path story version is kept in the project history on GitHub (tag story-version).',
 warning: [
   'This resource may contain names and images of deceased Aboriginal, Torres Strait Islander and South Sea Islander people.',
   'It is about the Queensland sugar industry, the labour trade that brought Pacific Islanders to Queensland (often called blackbirding), deaths from disease, the deportations of 1906 to 1908, and the dispossession of Aboriginal people. It does not show violence in detail, but it does say that it happened. Some old photographs show people who have died. You can stop at any time. If this upsets you, talk to a teacher, a family member or someone you trust.'
